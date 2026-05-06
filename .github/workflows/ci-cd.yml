@@ -1,0 +1,54 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-secure:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 🔹 Install Node
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # 🔹 Install dependencies
+    - name: Install Dependencies
+      run: |
+        cd app
+        npm install
+
+    # 🔹 Run App Test (basic)
+    - name: Run App
+      run: |
+        node app/index.js &
+        sleep 5
+
+    # 🔹 SAST - Semgrep
+    - name: Run Semgrep
+      uses: returntocorp/semgrep-action@v1
+
+    # 🔹 Secret Scan - Gitleaks
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+
+    # 🔹 Build Docker Image
+    - name: Build Docker Image
+      run: docker build -t devsecops-app .
+
+    # 🔹 Container Scan - Trivy
+    - name: Run Trivy Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: devsecops-app
+        format: table
+        exit-code: 1
+        ignore-unfixed: true
+        severity: CRITICAL,HIGH
