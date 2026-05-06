@@ -9,41 +9,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    
+
+    # 1. Checkout Code
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    # 🔹 Install Node
+    # 2. Setup Node
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
         node-version: '18'
 
-    # 🔹 Install dependencies
+    # 3. Install Dependencies
     - name: Install Dependencies
       run: |
         cd app
         npm install
 
-    # 🔹 Run App Test (basic)
-    - name: Run App
+    # 4. Run Application Test
+    - name: Run App Test
       run: |
         node app/index.js &
         sleep 5
+        curl http://localhost:3000
 
-    # 🔹 SAST - Semgrep
+    # 5. SAST Scan (Semgrep)
     - name: Run Semgrep
       uses: returntocorp/semgrep-action@v1
 
-    # 🔹 Secret Scan - Gitleaks
+    # 6. Secret Scan (Gitleaks)
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
 
-    # 🔹 Build Docker Image
+    # 7. Build Docker Image
     - name: Build Docker Image
       run: docker build -t devsecops-app .
 
-    # 🔹 Container Scan - Trivy
+    # 8. Container Security Scan (Trivy)
     - name: Run Trivy Scan
       uses: aquasecurity/trivy-action@master
       with:
